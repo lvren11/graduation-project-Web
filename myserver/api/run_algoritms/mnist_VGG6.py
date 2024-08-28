@@ -1,0 +1,47 @@
+import torch
+import torchvision
+import torch.nn as nn
+from torch.nn import functional as F
+from torch.autograd import Variable
+import torchsnooper
+from torchsummary import summary
+
+torch.manual_seed(1)
+
+# @torchsnooper.snoop()
+class VGG66(nn.Module):
+    
+    def __init__(self):
+        super(VGG6, self).__init__()
+        self.conv1 = nn.Conv2d(1, 64, 3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(64, 64, 3, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(64, 128, 3, stride=1, padding=1)
+        self.conv4 = nn.Conv2d(128, 128, 3, stride=1, padding=1)
+        self.conv5 = nn.Conv2d(128, 256, 3, stride=1, padding=1)
+        #self.conv6 = nn.Conv2d(256, 256, 3)
+        # self.conv7 = nn.Conv2d(256, 256, 3)
+        # self.conv8 = nn.Conv2d(256, 512, 3)
+        # self.conv9 = nn.Conv2d(512, 512, 3)
+        # self.conv10 = nn.Conv2d(512, 512, 3)
+        self.fc1 = nn.Linear(256*7*7, 10)
+
+    def forward(self, x):
+        x = F.selu(self.conv1(x))
+        x = F.selu(self.conv2(x))
+        x = F.max_pool2d(x, 2, 2)
+        x = F.selu(self.conv3(x))
+        x = F.selu(self.conv4(x))
+        x = F.max_pool2d(x, 2, 2)
+        x = F.selu(self.conv5(x))
+        #x = F.selu(self.conv6(x))
+        # x = F.selu(self.conv7(x))
+        # x = F.max_pool2d(x, 2)
+        # x = F.selu(self.conv8(x))
+        # x = F.selu(self.conv9(x))
+        # x = F.selu(self.conv10(x))
+        # print(x.size())
+        x = x.view(x.size(0), -1)
+        # print(x.size())
+        x = self.fc1(x)
+        # print(x.size())
+        return F.log_softmax(x, dim=1)
